@@ -1,0 +1,308 @@
+[gd_scene load_steps=22 format=3 uid="uid://otp3trrmcmsp"]
+
+[ext_resource type="Script" uid="uid://dun4o1vn0c0x1" path="res://Scripts/Limitfps.cs" id="1_i5arm"]
+[ext_resource type="Script" uid="uid://cybx5twe5gu5l" path="res://Scripts/LookAt.cs" id="1_noarx"]
+[ext_resource type="Texture2D" uid="uid://co4b6nr3ium3n" path="res://Mats/kenney_prototype-textures/PNG/Dark/texture_08.png" id="3_a0tk4"]
+[ext_resource type="Script" uid="uid://dp4tysk4e28u3" path="res://Scripts/MakePath.cs" id="3_jka67"]
+[ext_resource type="Script" uid="uid://cgqwgxxdi36ig" path="res://Scripts/Weapon.cs" id="3_jsk3o"]
+[ext_resource type="Script" uid="uid://di8u0ng0q2s3t" path="res://Scripts/MovePath.cs" id="3_r3fl7"]
+[ext_resource type="PackedScene" uid="uid://lxw8kimupag" path="res://GameObjects/Projectile.tscn" id="4_4arys"]
+[ext_resource type="Script" uid="uid://d4hl7msbn754q" path="res://Scripts/TargetingSystem.cs" id="5_jka67"]
+[ext_resource type="Script" uid="uid://cch5c1begqf1c" path="res://Scripts/ControlParams.cs" id="7_wc5p8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r3fl7"]
+albedo_texture = ExtResource("3_a0tk4")
+uv1_triplanar = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_noarx"]
+size = Vector2(300, 300)
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_a0tk4"]
+ground_color = Color(1, 1, 1, 1)
+energy_multiplier = 1.2
+
+[sub_resource type="Sky" id="Sky_r3fl7"]
+sky_material = SubResource("PhysicalSkyMaterial_a0tk4")
+
+[sub_resource type="Environment" id="Environment_jka67"]
+background_mode = 2
+sky = SubResource("Sky_r3fl7")
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
+glow_enabled = true
+volumetric_fog_density = 0.0365
+
+[sub_resource type="Curve3D" id="Curve3D_a0tk4"]
+closed = true
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -35.0813, -5.04134, 1.50244),
+"tilts": PackedFloat32Array(0)
+}
+point_count = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_r3fl7"]
+size = Vector3(20, 5, 17)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4arys"]
+size = Vector3(20, 5, 17)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6iypd"]
+size = Vector3(25, 8, 17)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tereu"]
+size = Vector3(25, 8, 17)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jka67"]
+albedo_color = Color(1, 0.243137, 0.145098, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_i5arm"]
+radius = 2.0
+height = 4.0
+
+[node name="Node3D" type="Node3D"]
+script = ExtResource("1_i5arm")
+
+[node name="Weapon" type="CSGCylinder3D" parent="." node_paths=PackedStringArray("_ControlParams", "targetNodeLookAt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("3_jsk3o")
+FireRate = 10.0
+ProjectileSpeed = 500.0
+ProjectileScene = ExtResource("4_4arys")
+_ControlParams = NodePath("../Control")
+targetNodeLookAt = NodePath("../Target Indicator")
+
+[node name="Camera3D" type="Camera3D" parent="." node_paths=PackedStringArray("targetNode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.39913, 1, 0.103887)
+script = ExtResource("1_noarx")
+targetNode = NodePath("../Target Indicator")
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.556963, 0)
+material_override = SubResource("StandardMaterial3D_r3fl7")
+mesh = SubResource("PlaneMesh_noarx")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_jka67")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.745175, 0.645106, -0.168973, 0.553364, -0.456758, 0.696534, 0.372159, -0.612543, -0.697344, 2.047, 3.55646, -1.38307)
+shadow_enabled = true
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, 100)
+curve = SubResource("Curve3D_a0tk4")
+script = ExtResource("3_jka67")
+Radius = 30.0
+Segments = 256
+
+[node name="PathFollow3D" type="PathFollow3D" parent="Path3D" node_paths=PackedStringArray("hSlider")]
+transform = Transform3D(0.999972, 0, 0, 0, 0.999995, 0, 0, 0, 0.999969, 0, 0, 0)
+rotation_mode = 0
+script = ExtResource("3_r3fl7")
+MoveSpeed = 50.0
+hSlider = NodePath("../../Control/VBoxContainer/SpeedSlider")
+
+[node name="Gladius sized box" type="CSGMesh3D" parent="Path3D/PathFollow3D" node_paths=PackedStringArray("targetNode")]
+mesh = SubResource("BoxMesh_r3fl7")
+script = ExtResource("1_noarx")
+targetNode = NodePath("../../../Weapon")
+
+[node name="GladiusArea3D" type="Area3D" parent="Path3D/PathFollow3D/Gladius sized box"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Path3D/PathFollow3D/Gladius sized box/GladiusArea3D"]
+shape = SubResource("BoxShape3D_4arys")
+
+[node name="f8 Sized box" type="CSGMesh3D" parent="Path3D/PathFollow3D" node_paths=PackedStringArray("targetNode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.0969954)
+visible = false
+mesh = SubResource("BoxMesh_6iypd")
+script = ExtResource("1_noarx")
+targetNode = NodePath("../../../Weapon")
+
+[node name="F8Area3D" type="Area3D" parent="Path3D/PathFollow3D/f8 Sized box"]
+visible = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Path3D/PathFollow3D/f8 Sized box/F8Area3D"]
+visible = false
+shape = SubResource("BoxShape3D_tereu")
+disabled = true
+
+[node name="Target Indicator" type="MeshInstance3D" parent="." node_paths=PackedStringArray("TargetNode", "FiringPointNode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 28.902, -24.6016)
+material_override = SubResource("StandardMaterial3D_jka67")
+mesh = SubResource("SphereMesh_i5arm")
+skeleton = NodePath("../Path3D")
+script = ExtResource("5_jka67")
+TargetNode = NodePath("../Path3D/PathFollow3D/Gladius sized box")
+FiringPointNode = NodePath("../Camera3D")
+ProjectileSpeed = 500.0
+SmoothingFactor = 0.0
+
+[node name="Control" type="Control" parent="." node_paths=PackedStringArray("targetingSystem", "weapon", "hSlider", "hSlider2", "hSlider3", "hSliderConeOfFire", "hSliderFireRate", "makePath", "movePath", "label", "label2", "label3", "labelConeofFire", "labelFireRate", "F8HitcountLable", "F8misscountlable", "f8percentLable", "DistnaceSlider", "DistanceLable", "counterlable", "misslable", "Hitpercentage", "resetButton")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 4
+size_flags_vertical = 6
+script = ExtResource("7_wc5p8")
+targetingSystem = NodePath("../Target Indicator")
+weapon = NodePath("../Weapon")
+hSlider = NodePath("VBoxContainer/RadiusSlider")
+hSlider2 = NodePath("VBoxContainer/SpeedSlider")
+hSlider3 = NodePath("VBoxContainer/WeaponVelo Slider")
+hSliderConeOfFire = NodePath("VBoxContainer/Cone of Fire Slider")
+hSliderFireRate = NodePath("VBoxContainer/Fire Rate Slider")
+makePath = NodePath("../Path3D")
+movePath = NodePath("../Path3D/PathFollow3D")
+label = NodePath("VBoxContainer3/Ship speed (value)")
+label2 = NodePath("VBoxContainer3/Radius Value")
+label3 = NodePath("VBoxContainer3/Weapon Velo Value")
+labelConeofFire = NodePath("VBoxContainer3/Cone of Fire (Value)")
+labelFireRate = NodePath("VBoxContainer3/FireRate Value")
+F8HitcountLable = NodePath("VBoxContainer5/F8Counter")
+F8misscountlable = NodePath("VBoxContainer5/F8Miss")
+f8percentLable = NodePath("VBoxContainer5/H8HitPercent")
+DistnaceSlider = NodePath("VBoxContainer/Distance Slider")
+DistanceLable = NodePath("VBoxContainer3/Distance Value")
+counterlable = NodePath("VBoxContainer4/Counter")
+misslable = NodePath("VBoxContainer4/Miss")
+Hitpercentage = NodePath("VBoxContainer4/Hit percentage")
+resetButton = NodePath("VBoxContainer4/Rest Status button")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 1.025
+offset_right = 264.0
+offset_bottom = 122.0
+metadata/_edit_use_anchors_ = true
+
+[node name="SpeedSlider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 2
+max_value = 500.0
+
+[node name="RadiusSlider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 2
+max_value = 500.0
+
+[node name="WeaponVelo Slider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 2
+min_value = 100.0
+max_value = 10000.0
+value = 100.0
+
+[node name="Cone of Fire Slider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 2
+max_value = 15.0
+step = 0.1
+
+[node name="Fire Rate Slider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 2
+max_value = 30.0
+step = 0.5
+
+[node name="Distance Slider" type="HSlider" parent="Control/VBoxContainer"]
+layout_mode = 2
+max_value = 3000.0
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_left = 389.0
+offset_top = 2.0
+offset_right = 524.0
+offset_bottom = 52.0
+
+[node name="Ship Speed" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Ship Screw Speed"
+
+[node name="Circle Radius" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Ship Ciicle Radius"
+
+[node name="Weapon Velo" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Wepon Velo"
+
+[node name="Cone of fire" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Cone (Spread)"
+
+[node name="Fire Rate (SPS)" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Fire Rate (SPS)"
+
+[node name="Distance" type="Label" parent="Control/VBoxContainer2"]
+layout_mode = 2
+text = "Distance in (m)"
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_left = 268.0
+offset_top = 1.0
+offset_right = 363.0
+offset_bottom = 41.0
+
+[node name="Ship speed (value)" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="Radius Value" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="Weapon Velo Value" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="Cone of Fire (Value)" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="FireRate Value" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="Distance Value" type="Label" parent="Control/VBoxContainer3"]
+layout_mode = 2
+
+[node name="VBoxContainer4" type="VBoxContainer" parent="Control"]
+layout_mode = 0
+offset_left = 550.0
+offset_top = 6.0
+offset_right = 753.0
+offset_bottom = 134.0
+
+[node name="Counter" type="Label" parent="Control/VBoxContainer4"]
+layout_mode = 2
+text = "Projectiles hit : "
+
+[node name="Miss" type="Label" parent="Control/VBoxContainer4"]
+layout_mode = 2
+
+[node name="Hit percentage" type="Label" parent="Control/VBoxContainer4"]
+layout_mode = 2
+
+[node name="Rest Status button" type="Button" parent="Control/VBoxContainer4"]
+layout_mode = 2
+text = "Rest Stats"
+
+[node name="VBoxContainer5" type="VBoxContainer" parent="Control"]
+visible = false
+layout_mode = 0
+offset_left = 819.0
+offset_top = 12.0
+offset_right = 988.0
+offset_bottom = 155.0
+
+[node name="F8Counter" type="Label" parent="Control/VBoxContainer5"]
+layout_mode = 2
+
+[node name="F8Miss" type="Label" parent="Control/VBoxContainer5"]
+layout_mode = 2
+
+[node name="H8HitPercent" type="Label" parent="Control/VBoxContainer5"]
+layout_mode = 2
